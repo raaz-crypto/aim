@@ -26,7 +26,7 @@ module Aim.Feature
 
 -- | A class that captures all basic features. Example for features
 -- are assertions like the architecture is X86 or something similar.
-class Feature feature where
+class Feature feature
 
 -- | A conjunction type. This is used to capture a conjunction of
 -- features.
@@ -42,18 +42,18 @@ data feature :/\: conjunction
 -- > instr :: arch :=>: Arch X86 :/\: SSE
 -- >       => ...
 -- >
-class conjA :=>: conjB where
+class conjA :=>: conjB
 
 infixr 9 :/\:
 infixr 8 :=>:
 
-instance Feature feature => feature :=>: feature where
+instance Feature feature => feature :=>: feature
 
-instance Feature feature => feature :/\: conj :=>: feature where
+instance Feature feature => feature :/\: conj :=>: feature
 
 instance ( Feature feature
          , conjA :=>: conjB
          , conjA :=>: feature
          )
          =>
-         conjA :=>: feature :/\: conjB where
+         conjA :=>: feature :/\: conjB
