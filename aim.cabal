@@ -23,6 +23,8 @@ source-repository head
   location: https://github.com/piyush-kurur/raaz
 
 library
-  build-depends: base ==4.5.*
+  build-depends: base                     >= 4.5   && <  4.7
+               , text                     >= 0.11  && <  0.12
   ghc-options: -Wall -Werror
   exposed-modules: Aim
+                 , Aim.Machine

@@ -1,6 +1,6 @@
 -- | Top level module that exports everything.
 module Aim
-       ( module Aim.Feature
+       ( module Aim.Machine
        ) where
 
-import Aim.Feature
+import Aim.Machine
