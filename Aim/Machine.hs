@@ -26,7 +26,6 @@ module Aim.Machine
        -- $basicmachinetypes$
        , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
        , Register
-       , Bits32, Bits64
        , Operand (..)
        ) where
 
@@ -78,21 +77,6 @@ instance Type64Bits Word64; instance Type64Bits Int64
 
 -- | Types that are essentially 128-bit quantities
 class Type128Bits typ
-
-
--- | Constraints that captures a 32-bit machine. It supports both
--- signed and unsigned ints of size upto 32.
-type Bits32 machine = ( Supports machine Word8 , Supports machine Int8
-                      , Supports machine Word16, Supports machine Int16
-                      , Supports machine Word32, Supports machine Int32
-                      )
-
--- | Constraints that captures a 64-bit machine. It supports both
--- signed and unsigned ints of size upto 64.
-type Bits64 machine  = ( Supports machine Word64, Supports machine Int64
-                       , Bits32   machine
-                       )
-
 
 -- | This constraint asserts that the register and the machine has the
 -- same underlying architecture.
