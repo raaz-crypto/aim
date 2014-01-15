@@ -78,13 +78,6 @@ instance Type64Bits Word64; instance Type64Bits Int64
 -- | Types that are essentially 128-bit quantities
 class Type128Bits typ
 
--- | This constraint asserts that the register and the machine has the
--- same underlying architecture.
-type SameArchitectures machine operand = ( Machine machine
-                                         , Operand operand
-                                         , SupportedOn operand ~ ArchOf machine
-                                         )
-
 -- | Class that captures all possible operands. Operands have a type
 -- and they are usually suppored on a specific architecture. They also
 -- put additional constraints on the underlying machine.
@@ -102,7 +95,7 @@ class Arch (SupportedOn operand) => Operand operand where
   type MachineConstraint machine operand :: Constraint
 
   type MachineConstraint machine operand = ( Supports machine (Type operand)
-                                           , SameArchitectures machine operand
+                                           , SupportedOn operand ~ ArchOf machine
                                            )
 
 -- | Constraint that the given operand is a register.
