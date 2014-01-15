@@ -20,6 +20,7 @@ constraints at the type level.
 module Aim.Machine
        ( Arch, Machine, Supports
        , Register
+       , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
        , Bits32, Bits64
        , Instruction(..), Operand (..)
        ) where
@@ -35,6 +36,27 @@ class Arch arch
 -- | Class that captures a machine.
 class Arch (ArchOf machine) => Machine machine where
   type ArchOf machine :: *
+
+-- | Types that are essentially 8-bit quantities.
+class Type8Bits typ
+
+instance Type8Bits Word8; instance Type8Bits Int8
+
+-- | Types that are essentially 16-bit quantities.
+class Type16Bits typ
+instance Type16Bits Word16; instance Type16Bits Int16
+
+-- | Types that are essentially 32-bit quantities
+class Type32Bits typ
+instance Type32Bits Word32; instance Type32Bits Int32
+
+-- | Types that are essentially 64-bit quantities
+class Type64Bits typ
+instance Type64Bits Word64; instance Type32Bits Int64
+
+-- | Types that are essentially 128-bit quantities
+class Type128Bits typ
+
 
 -- | Whether the machine supports values of this type.
 class Machine machine => Supports machine typ
