@@ -18,11 +18,16 @@ constraints at the type level.
 -}
 
 module Aim.Machine
-       ( Arch, Machine, Supports
-       , Register
+       (
+       -- * Architecture and Machine.
+         Arch, Machine
+       , Supports, Instruction(..)
+       -- * Basic machine types
+       -- $basicmachinetypes$
        , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
+       , Register
        , Bits32, Bits64
-       , Instruction(..), Operand (..)
+       , Operand (..)
        ) where
 
 import GHC.Exts         ( Constraint                    )
@@ -36,6 +41,23 @@ class Arch arch
 -- | Class that captures a machine.
 class Arch (ArchOf machine) => Machine machine where
   type ArchOf machine :: *
+
+-- | Whether the machine supports values of this type.
+class Machine machine => Supports machine typ
+
+data Instruction machine = Instruction Text
+
+-- $basicmachinetypes$
+--
+-- In assembly language, the basic units of information 8-bit, 16-bit,
+-- 32-bit, 64-bit and sometimes 128-bit signed and unsigned
+-- integers. However, to improve type safety, we should be able to use
+-- opaque types that can be encoded as one of the above types. For
+-- example, we would want to treat Char8 differently than Word8 even
+-- though they are encoded similary on the machine. We support using
+-- any of these opaque types in assembly instructions. The classes
+-- `Type8Bits`, `Type16Bits`, `Type32Bits`, `Type64Bits` and
+-- `Type128Bits` are meant to capture these opaque types.
 
 -- | Types that are essentially 8-bit quantities.
 class Type8Bits typ
@@ -52,16 +74,11 @@ instance Type32Bits Word32; instance Type32Bits Int32
 
 -- | Types that are essentially 64-bit quantities
 class Type64Bits typ
-instance Type64Bits Word64; instance Type32Bits Int64
+instance Type64Bits Word64; instance Type64Bits Int64
 
 -- | Types that are essentially 128-bit quantities
 class Type128Bits typ
 
-
--- | Whether the machine supports values of this type.
-class Machine machine => Supports machine typ
-
-data Instruction machine = Instruction Text
 
 -- | Constraints that captures a 32-bit machine. It supports both
 -- signed and unsigned ints of size upto 32.
