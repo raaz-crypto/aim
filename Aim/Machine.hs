@@ -20,7 +20,7 @@ constraints at the type level.
 module Aim.Machine
        (
        -- * Architecture and Machine.
-         Arch, Machine
+         Arch, Machine(..)
        , Supports, Instruction(..)
        -- * Basic machine types
        -- $basicmachinetypes$
