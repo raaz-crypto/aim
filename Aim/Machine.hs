@@ -21,7 +21,7 @@ module Aim.Machine
        (
        -- * Architecture and Machine.
          Arch, Machine(..)
-       , Supports, Instruction(..)
+       , Supports, Instruction(..), Instructions
        -- * Basic machine types
        -- $basicmachinetypes$
        , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
@@ -45,6 +45,8 @@ class Arch (ArchOf machine) => Machine machine where
 class Machine machine => Supports machine typ
 
 data Instruction machine = Instruction Text
+
+type Instructions machine = [Instruction machine]
 
 -- $basicmachinetypes$
 --
