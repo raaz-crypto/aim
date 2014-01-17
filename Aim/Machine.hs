@@ -5,6 +5,7 @@
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-|
 
 One of the important consideration in the design of Aim is that errors
@@ -23,6 +24,7 @@ module Aim.Machine
          Arch, Machine(..)
        , Supports
        , Instruction, Instructions, assembleInstructions
+       , comments, (<#>)
        -- * Basic machine types
        -- $basicmachinetypes$
        , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
@@ -31,12 +33,16 @@ module Aim.Machine
        ) where
 
 import GHC.Exts         ( Constraint                    )
-import Data.Text        ( Text, unlines                 )
+import Data.Text        ( Text, unlines, lines, length
+                        , replicate, null
+                        )
 import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
 import Data.Monoid
 import Data.String      ( IsString(..)                  )
-import Prelude hiding   ( unlines                       )
+import Prelude hiding   ( unlines, lines, length
+                        , replicate, null
+                        )
 
 
 
@@ -62,6 +68,22 @@ type Instructions machine = [Instruction machine]
 assembleInstructions :: Instructions machine -> Text
 assembleInstructions = unlines . map text
   where text (Instruction txt) = txt
+
+-- | Generate a comment block
+comments :: Text -> Instructions machine
+comments txt = [ Instruction $ "# " <> t | t <- lines txt ]
+
+-- | Comment on an instruction
+(<#>) :: Instruction machine -- ^ The instruction to comment on
+      -> Text                -- ^ The comment
+      -> Instruction machine
+(<#>) inst@(Instruction txt) com
+  | null com  =  inst
+  | otherwise = Instruction $ unlines $ first : rest
+  where pad    = replicate (length txt + 3) " "
+        (c:cs) = lines com
+        first  = txt <> replicate 3 " " <> "# " <> c
+        rest   = [pad <> "# " <> x | x <- cs]
 
 -- $basicmachinetypes$
 --
