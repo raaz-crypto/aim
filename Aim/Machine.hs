@@ -21,7 +21,8 @@ module Aim.Machine
        (
        -- * Architecture and Machine.
          Arch, Machine(..)
-       , Supports, Instruction(..), Instructions
+       , Supports
+       , Instruction, Instructions, assembleInstructions
        -- * Basic machine types
        -- $basicmachinetypes$
        , Type8Bits, Type16Bits, Type32Bits, Type64Bits, Type128Bits
@@ -30,9 +31,13 @@ module Aim.Machine
        ) where
 
 import GHC.Exts         ( Constraint                    )
-import Data.Text        ( Text                          )
+import Data.Text        ( Text, unlines                 )
 import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
+import Data.Monoid
+import Data.String      ( IsString(..)                  )
+import Prelude hiding   ( unlines                       )
+
 
 
 class Arch arch
@@ -46,7 +51,17 @@ class Machine machine => Supports machine typ
 
 data Instruction machine = Instruction Text
 
+instance IsString (Instruction machine) where
+  fromString = Instruction . fromString
+
+-- | A sequence of instructions.
 type Instructions machine = [Instruction machine]
+
+-- | Assemble a sequence of instructions into the corresponding
+-- assembly language program.
+assembleInstructions :: Instructions machine -> Text
+assembleInstructions = unlines . map text
+  where text (Instruction txt) = txt
 
 -- $basicmachinetypes$
 --
