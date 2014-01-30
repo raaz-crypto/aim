@@ -28,3 +28,4 @@ library
   ghc-options: -Wall
   exposed-modules: Aim
                  , Aim.Machine
+  other-modules: Aim.Assembler.Language
