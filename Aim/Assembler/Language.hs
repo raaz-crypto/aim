@@ -25,6 +25,7 @@ import Data.String
 import Data.Text             ( Text                          )
 import Data.Word             ( Word8, Word16, Word32, Word64 )
 
+import Aim.Machine
 
 -- | A program for a given architecture.
 type ProgramMonoid arch  = CommentMonoid (Declaration arch)
@@ -119,16 +120,6 @@ data Constant = I Size (Signed Integer)  -- ^ A signed integer
               | F Double                 -- ^ A floting point constant.
               deriving Show
 
-
--- | Different sizes that are available on the processor.
-data Size = Size8
-          | Size16
-          | Size32
-          | Size64
-          | Size128
-          | Size256
-          | SizePtr  -- ^ Size of the pointer
-          deriving Show
 
 -- | Tags the value to distinguish between signed and unsigned
 -- quantities.

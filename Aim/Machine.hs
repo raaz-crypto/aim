@@ -25,7 +25,7 @@ module Aim.Machine
          Arch, Machine(..)
        -- * Basic machine types
        -- $machinetypes$
-       , WordSize
+       , WordSize, Size(..)
        , MachineType(..)
        , Supports
        , Register
@@ -35,8 +35,6 @@ module Aim.Machine
 import GHC.Exts         ( Constraint                    )
 import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
-
-import Aim.Assembler.Language ( Size(..) )
 
 -- | Class that captures an architecture.
 class Arch arch
@@ -60,10 +58,22 @@ class Arch (ArchOf machine) => Machine machine where
 -- can potentialy be stored in the general purpose registers of some
 -- machine has to be an instance of the class `MachineType`. The
 -- associated type `TypeSize` captures the size in bits of the type in
--- the type level.  Each machine should define the word sizes it can
--- store in its registers by declaring instances of the class
+-- the type level. This is done through the data kind obtained by
+-- promoting the type `Size`. Each machine should define the word sizes
+-- it can store in its registers by declaring instances of the class
 -- `WordSize`. Finally, the constraint, @`Supports` mach ty@ captures
 -- whether the machine @mach@ supports the type @ty@
+
+
+-- | Different sizes that are available on the processor.
+data Size = Size8
+          | Size16
+          | Size32
+          | Size64
+          | Size128
+          | Size256
+          | SizePtr  -- ^ Size of the pointer
+          deriving Show
 
 
 -- | Declaring a type to be an instance of `MachineType` means that it
