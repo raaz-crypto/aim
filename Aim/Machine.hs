@@ -55,13 +55,15 @@ class Arch (ArchOf machine) => Machine machine where
 -- safe as possible. We allow the use opaque types that can be encoded
 -- as one of the above types. For example, we would want to treat
 -- `Char8` differently than `Word8` even though they are encoded
--- similary on the machine. We capture this type safety by three
--- classes `MachineType` for types, `WordSize` for machines. For every
--- type that we want to process by some machine, we declare it to be
--- an instance of the class `MachineType`. Similarly, for each machine
--- we would like to define which sizes they support. This is captured
--- by the class `WordSize`. Finally, the constraint, @`Support`
--- machine ty@ captures whether a machine supports the type @ty@
+-- similary on the machine. We capture this type safety by the classes
+-- `MachineType` for types and `WordSize` for machines. Any type that
+-- can potentialy be stored in the general purpose registers of some
+-- machine has to be an instance of the class `MachineType`. The
+-- associated type `TypeSize` captures the size in bits of the type in
+-- the type level.  Each machine should define the word sizes it can
+-- store in its registers by declaring instances of the class
+-- `WordSize`. Finally, the constraint, @`Supports` mach ty@ captures
+-- whether the machine @mach@ supports the type @ty@
 
 
 -- | Declaring a type to be an instance of `MachineType` means that it
@@ -84,13 +86,13 @@ instance MachineType Word64 where type TypeSize Word64 = Size64
 instance MachineType  Int64 where type TypeSize  Int64 = Size64
 
 
--- | The instance `WordSize mach sz` means that the machine `mach` can
--- process integral valuse of size sz.
+-- | The instance @`WordSize` mach sz@ means that the machine @mach@
+-- can process integral values of size @sz@.
 class WordSize machine (sz :: Size)
 
 
 -- | Supports is the constraint type that captures when a machine
--- supports a given machine type ty
+-- supports a given machine type.
 type Supports machine ty = ( MachineType ty
                            , WordSize machine (TypeSize ty)
                            )
