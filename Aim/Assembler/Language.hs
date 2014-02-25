@@ -43,72 +43,74 @@ data Declaration arch = Array    Text Size  (Signed [Integer])
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
 data Statement arch = S0 Text
-                    | S1 Text Arg
-                    | S2 Text Arg Arg
-                    | S3 Text Arg Arg Arg deriving Show
+                    | S1 Text (Arg arch)
+                    | S2 Text (Arg arch) (Arg arch)
+                    | S3 Text (Arg arch) (Arg arch) (Arg arch)
+                    deriving Show
 
 -- | An argument of an assembly statement.
-data Arg = Immediate Constant -- ^ An immediate value
-         | Param     Int      -- ^ A parameter
-         | Local     Int      -- ^ A local variable
-         | Reg       Text     -- ^ A register
-         | Indirect  Text
-                     Size
-                     Int       deriving Show
+data Arg arch = Immediate Constant -- ^ An immediate value
+              | Param     Int      -- ^ A parameter
+              | Local     Int      -- ^ A local variable
+              | Reg       Text     -- ^ A register
+              | Indirect  Text
+                          Size
+                          Int
+              deriving Show
 
 -- | A variable declaration.
 data VarDec = VarDec (Signed Size) Text deriving Show
 
 -- | An 8-bit unsigned integer.
-word8  :: Word8  -> Arg
+word8  :: Word8  -> (Arg arch)
 word8  = Immediate . I Size8 . unsigned . toInteger
 
 -- | A 16-bit unsigned integer.
-word16 :: Word16 -> Arg
+word16 :: Word16 -> (Arg arch)
 word16 = Immediate . I Size16 . unsigned . toInteger
 
 -- | A 32-bit unsigned integer.
-word32 :: Word32 -> Arg
+word32 :: Word32 -> (Arg arch)
 word32 = Immediate . I Size32 . unsigned . toInteger
 
 -- | A 64-bit unsiged integer.
-word64 :: Word64 -> Arg
+word64 :: Word64 -> (Arg arch)
 word64 = Immediate . I Size64 . unsigned . toInteger
 
 -- | A 128-bit unsigned integer.
-word128 :: Integer -> Arg
+word128 :: Integer -> (Arg arch)
 word128 = Immediate . I Size128 . unsigned
 
 -- | A 256-bit unsiged integer.
-word256 :: Integer -> Arg
+word256 :: Integer -> (Arg arch)
 word256 = Immediate . I Size256 . unsigned
 
 -- | Encode a character into its ascii equivalent.
-char8 :: Char -> Arg
+char8 :: Char -> (Arg arch)
 char8 = word8 . toEnum . fromEnum
 
 -- | A signed 8-bit integer
-int8 :: Int8 -> Arg
+int8 :: Int8 -> (Arg arch)
 int8 = Immediate . I Size8 . signed . toInteger
 
 -- | A signed 16-bit integer
-int16 :: Int16 -> Arg
+int16 :: Int16 -> (Arg arch)
 int16 = Immediate . I Size16 . signed . toInteger
 
 -- | A signed 32-bit integer
-int32 :: Int32 -> Arg
+int32 :: Int32 -> (Arg arch)
 int32 = Immediate . I Size32 . signed . toInteger
 
 -- | A signed 64-bit integer
-int64 :: Int64 -> Arg
+int64 :: Int64 -> (Arg arch)
 int64 = Immediate . I Size64 . signed . toInteger
 
 -- | A signed 128-bit integer.
-int128 :: Integer -> Arg
+int128 :: Integer -> (Arg arch)
 int128 = Immediate . I Size128 . signed
 
 -- | A signed 256-bit integer.
-int256 :: Integer -> Arg
+int256 :: Integer -> (Arg arch)
 int256 = Immediate . I Size256 . signed
 
 
