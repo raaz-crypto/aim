@@ -61,6 +61,8 @@ data Arg arch = Immediate Constant -- ^ An immediate value
 -- | A variable declaration.
 data VarDec = VarDec (Signed Size) Text deriving Show
 
+------------------- Some helper functions --------------------
+
 -- | An 8-bit unsigned integer.
 word8  :: Word8  -> (Arg arch)
 word8  = Immediate . I Size8 . unsigned . toInteger
