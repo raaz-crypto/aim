@@ -32,3 +32,4 @@ library
                  , Aim.Machine
                  , Aim.Monad
   other-modules: Aim.Assembler.Internal.Language
+               , Aim.Assembler.Internal.Syntax

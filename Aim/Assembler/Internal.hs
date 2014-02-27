@@ -15,6 +15,8 @@ developers who:
 
 module Aim.Assembler.Internal
        ( module Aim.Assembler.Internal.Language
+       , module Aim.Assembler.Internal.Syntax
        ) where
 
 import Aim.Assembler.Internal.Language
+import Aim.Assembler.Internal.Syntax
