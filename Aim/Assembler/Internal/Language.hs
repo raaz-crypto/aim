@@ -10,14 +10,18 @@ users of @aim@ should avoid using it directly.
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Aim.Assembler.Internal.Language
-       ( ProgramMonoid, BlockMonoid, CommentMonoid
-       , Declaration
-       , Arg(..), Statement(..), VarDec(..)
-       , Commented(..), (<#>), (<!>)
-       , Size(..), Signed(..), signed, unsigned
-       , Constant(..)
+       ( Declaration(..)
+       , Statement(..), Arg(..), VarDec(..)
+       -- * Helpers to create immediate arguments
        , word8, word16, word32, word64, word128, word256, char8
        , int8, int16, int32, int64, int128, int256
+       -- * Constants
+       , Constant(..), Signed(..), signed, unsigned
+       -- * Stuff with comments
+       , Commented(..), (<#>), (<!>)
+       -- * Some Monoids
+       , ProgramMonoid, BlockMonoid, CommentMonoid
+
        ) where
 
 import Data.Int              ( Int8, Int16, Int32, Int64     )
