@@ -29,6 +29,7 @@ library
                , pretty                   >= 1.1   && <  1.2
   ghc-options: -Wall
   exposed-modules: Aim
+                 , Aim.Arch.C
                  , Aim.Assembler.Internal
                  , Aim.Assembler.Internal.Language
                  , Aim.Assembler.Internal.Syntax
