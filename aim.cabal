@@ -29,7 +29,7 @@ library
   ghc-options: -Wall
   exposed-modules: Aim
                  , Aim.Assembler.Internal
+                 , Aim.Assembler.Internal.Language
+                 , Aim.Assembler.Internal.Syntax
                  , Aim.Machine
                  , Aim.Monad
-  other-modules: Aim.Assembler.Internal.Language
-               , Aim.Assembler.Internal.Syntax
