@@ -18,7 +18,7 @@ module Aim.Monad
 import Control.Monad.Writer
 import Control.Monad.Identity
 
-import Aim.Assembler.Language
+import Aim.Assembler.Internal.Language
 import Aim.Machine
 
 -- | Type alias for an assembly language block for a machine.

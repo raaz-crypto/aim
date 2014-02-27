@@ -1,15 +1,15 @@
 {-|
 
 Internal module that captures the abstract syntax of the assembly
-language. It is desired that users of Aim do not have access to this
-to avoid losing the type safety.
+language. The assembly language here is mostly type less and hence
+users of @aim@ should avoid using it directly.
 
 -}
 
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Aim.Assembler.Language
+module Aim.Assembler.Internal.Language
        ( ProgramMonoid, BlockMonoid, CommentMonoid
        , Declaration
        , Arg(..), Statement(..), VarDec(..)

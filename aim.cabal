@@ -28,6 +28,7 @@ library
                , mtl                      >= 2.1   && <  2.2
   ghc-options: -Wall
   exposed-modules: Aim
+                 , Aim.Assembler.Internal
                  , Aim.Machine
                  , Aim.Monad
-  other-modules: Aim.Assembler.Language
+  other-modules: Aim.Assembler.Internal.Language
