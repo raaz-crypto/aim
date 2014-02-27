@@ -38,10 +38,17 @@ type ProgramMonoid arch  = CommentMonoid (Declaration arch)
 type BlockMonoid   arch  = CommentMonoid (Statement   arch)
 
 -- | A declaration is either an array or a function definition.
-data Declaration arch = Array    Text Size  (Signed [Integer])
-                      | Function Text [VarDec]   --  parameters
-                                      [VarDec]   --  local variables
-                                      (BlockMonoid arch)
+data Declaration arch = Array { arrayName      :: Text
+                              , arrayValueSize :: Size
+                              , arrayContents  :: (Signed [Integer])
+                              }
+                        -- ^ An integral array declartion
+                      | Function { functionName       :: Text
+                                 , functionParameters :: [VarDec]
+                                 , functionLocalVars  :: [VarDec]
+                                 , functionBody       :: BlockMonoid arch
+                                 }
+                        -- ^ A function definition
                       deriving Show
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
