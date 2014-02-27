@@ -21,7 +21,10 @@ import Control.Monad.Identity
 import Aim.Assembler.Language
 import Aim.Machine
 
+-- | Type alias for an assembly language block for a machine.
 type AsmBlock   machine = BlockMonoid     (ArchOf machine)
+
+-- | Type alias for an assembly language program for a machine.
 type AsmProgram machine = ProgramMonoid   (ArchOf machine)
 
 -- | The aim monad transformer.
