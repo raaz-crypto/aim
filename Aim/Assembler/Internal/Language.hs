@@ -38,7 +38,8 @@ type ProgramMonoid arch  = CommentMonoid (Declaration arch)
 type BlockMonoid   arch  = CommentMonoid (Statement   arch)
 
 -- | A declaration is either an array or a function definition.
-data Declaration arch = Array { arrayName      :: Text
+data Declaration arch = Verbatim Text  -- ^ copy verbatim.
+                      | Array { arrayName      :: Text
                               , arrayValueSize :: Size
                               , arrayContents  :: (Signed [Integer])
                               }
