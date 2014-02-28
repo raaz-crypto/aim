@@ -11,7 +11,8 @@ here supports defining different syntaxes.
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleContexts       #-}
 module Aim.Assembler.Internal.Syntax
-       ( Syntax(..)
+       ( FunCxt(..)
+       , Syntax(..)
        --
        -- * Helper function for commenting
        -- ** Line comments
@@ -38,6 +39,14 @@ import Data.Text   ( Text, lines, unlines, intercalate )
 import Aim.Machine( Arch )
 import Aim.Assembler.Internal.Language
 
+-- | Argument expansion happens inside a statement which in turn
+-- happens inside a function. Inside the function local variables and
+-- parameters reside on the stack. To convert such arguments to stack
+-- offsets, we need to know the functional context, i.e. what are the
+-- parameters and what are the local variables.
+data FunCxt = FunCxt { params    :: [VarDec]
+                     , localVars :: [VarDec]
+                     }
 
 -- | This class captures when an architecture has a given syntax. For
 -- example, if we have an instance of @`Syntax` Foo MyArch@ then it
@@ -51,7 +60,10 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   type ArchOfSyntax syntax
 
   -- | Textual reprensentation `Arg`.
-  arg          :: syntax -> Arg (ArchOfSyntax syntax) -> Text
+  arg          :: syntax
+               -> FunCxt
+               -> Arg (ArchOfSyntax syntax)
+               -> Text
 
   -- | Textual representation of an instruction.
   instruction  :: syntax
@@ -62,15 +74,20 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   -- | Textual reprensentation of a statement. If instruction is
   -- defined then there is a default definition for this member.
   statement    :: syntax
+               -> FunCxt
                -> Statement (ArchOfSyntax syntax)
                -> Text
-  statement syn (S0 opc      ) = instruction syn opc []
-  statement syn (S1 opc a    ) = instruction syn opc [ arg syn a ]
-  statement syn (S2 opc a b  ) = instruction syn opc [ arg syn a, arg syn b ]
-  statement syn (S3 opc a b c) = instruction syn opc [ arg syn a
-                                                     , arg syn b
-                                                     , arg syn c
-                                                     ]
+  statement syn _   (S0 opc      ) = instruction syn opc []
+  statement syn env (S1 opc a    ) = instruction syn opc [ arg syn env a ]
+  statement syn env (S2 opc a b  ) = instruction syn opc
+                                     [ arg syn env a
+                                     , arg syn env b
+                                     ]
+  statement syn env (S3 opc a b c) = instruction syn opc
+                                     [ arg syn env a
+                                     , arg syn env b
+                                     , arg syn env c
+                                     ]
 
   -- | Textual representation of a definition.
   declaration :: syntax
