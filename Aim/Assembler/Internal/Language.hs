@@ -67,7 +67,9 @@ data Arg arch = Immediate Constant -- ^ An immediate value
               | Reg       Text     -- ^ A register
               | Indirect  Text
                           Size
-                          Int
+                          Int      -- ^ An indirect address. The text
+                                   -- field is the name of the
+                                   -- register used for indirection
               deriving Show
 
 -- | A variable declaration.
