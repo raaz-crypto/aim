@@ -11,8 +11,7 @@ here supports defining different syntaxes.
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleContexts       #-}
 module Aim.Assembler.Internal.Syntax
-       ( FunCxt(..)
-       , Syntax(..)
+       ( Syntax(..)
        --
        -- * Helper function for commenting
        -- ** Line comments
@@ -33,20 +32,13 @@ module Aim.Assembler.Internal.Syntax
        ) where
 
 import Data.Monoid
-import Prelude     ( map, ($)                          )
 import Data.Text   ( Text, lines, unlines, intercalate )
+import Prelude     ( map, ($), (.)                     )
+
 
 import Aim.Machine( Arch )
 import Aim.Assembler.Internal.Language
 
--- | Argument expansion happens inside a statement which in turn
--- happens inside a function. Inside the function local variables and
--- parameters reside on the stack. To convert such arguments to stack
--- offsets, we need to know the functional context, i.e. what are the
--- parameters and what are the local variables.
-data FunCxt = FunCxt { params    :: [VarDec]
-                     , localVars :: [VarDec]
-                     }
 
 -- | This class captures when an architecture has a given syntax. For
 -- example, if we have an instance of @`Syntax` Foo MyArch@ then it
@@ -61,7 +53,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
 
   -- | Textual reprensentation `Arg`.
   arg          :: syntax
-               -> FunCxt
+               -> Stack
                -> Arg (ArchOfSyntax syntax)
                -> Text
 
@@ -71,30 +63,42 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
                -> [Text] -- ^ textual representation of the operand.
                -> Text
 
-  -- | Textual reprensentation of a statement. If instruction is
+  -- | Textual representation of a statement. If instruction is
   -- defined then there is a default definition for this member.
   statement    :: syntax
-               -> FunCxt
+               -> Stack
                -> Statement (ArchOfSyntax syntax)
                -> Text
-  statement syn _   (S0 opc      ) = instruction syn opc []
-  statement syn env (S1 opc a    ) = instruction syn opc [ arg syn env a ]
-  statement syn env (S2 opc a b  ) = instruction syn opc
-                                     [ arg syn env a
-                                     , arg syn env b
-                                     ]
-  statement syn env (S3 opc a b c) = instruction syn opc
-                                     [ arg syn env a
-                                     , arg syn env b
-                                     , arg syn env c
-                                     ]
+  statement syn _  (S0 opc      ) = instruction syn opc []
+  statement syn st (S1 opc a    ) = instruction syn opc [ arg syn st a ]
+  statement syn st (S2 opc a b  ) = instruction syn opc
+                                    [ arg syn st a
+                                    , arg syn st b
+                                    ]
+  statement syn st (S3 opc a b c) = instruction syn opc
+                                    [ arg syn st a
+                                    , arg syn st b
+                                    , arg syn st c
+                                    ]
+
+  -- | Textual representation of and array declaration
+  declareArray :: syntax
+               -> Array (ArchOfSyntax syntax)
+               -> Text
+
+  -- Textual representation of a function definition
+  declareFunction :: syntax
+                  -> Text     -- Function name
+                  -> Stack
+                  -> BlockMonoid (ArchOfSyntax syntax)
+
 
   -- | Textual representation of a definition.
   declaration :: syntax
              -> Declaration (ArchOfSyntax syntax)
              -> Text
 
-  -- | How to comment a line of the program.
+-- | How to comment a line of the program.
   commentLine :: syntax
               -> Text -- ^ program line
               -> Text -- ^ comment.
@@ -104,7 +108,6 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   blockComment :: syntax -- ^ The syntax
                -> [Text] -- ^ block comment
                -> Text
-
 
 -- | This function can be used to comment when the underlying language
 -- supports line comments that start with a prefix. For example if the
@@ -156,7 +159,7 @@ commentLisp = commentBlock ";;"  ";;" ";;"
 
 -- | Block commenting Haskell style
 commentHaskell :: Text -> Text
-commentHaskell = commentBlock "{-" "--" "-}"
+commentHaskell = commentBlock "{-" "  " "-}"
 
 -- | Block commenting C       style
 commentC :: Text -> Text

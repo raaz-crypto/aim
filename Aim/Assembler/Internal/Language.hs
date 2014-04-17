@@ -10,7 +10,7 @@ users of @aim@ should avoid using it directly.
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Aim.Assembler.Internal.Language
-       ( Declaration(..)
+       ( Declaration(..), Array(..), Function(..), Stack(..)
        , Statement(..), Arg(..), VarDec(..)
        -- * Helpers to create immediate arguments
        , word8, word16, word32, word64, word128, word256, char8
@@ -38,19 +38,30 @@ type ProgramMonoid arch  = CommentMonoid (Declaration arch)
 type BlockMonoid   arch  = CommentMonoid (Statement   arch)
 
 -- | A declaration is either an array or a function definition.
-data Declaration arch = Verbatim Text  -- ^ copy verbatim.
-                      | Array { arrayName      :: Text
-                              , arrayValueSize :: Size
-                              , arrayContents  :: (Signed [Integer])
-                              }
-                        -- ^ An integral array declartion
-                      | Function { functionName       :: Text
-                                 , functionParameters :: [VarDec]
-                                 , functionLocalVars  :: [VarDec]
-                                 , functionBody       :: BlockMonoid arch
-                                 }
-                        -- ^ A function definition
+data Declaration arch = Verbatim Text -- ^ copy verbatim.
+                      | DArray (Array arch)
+                                      -- ^ An integral array
+                                      -- declaration
+                      | DFun (Function arch)
+                                      -- ^ A function definition
                       deriving Show
+
+-- | An array.
+data Array arch = Array { arrayName      :: Text
+                        , arrayValueSize :: Size
+                        , arrayContents  :: [Integer]
+                        } deriving Show
+-- | A function.
+data Function arch = Function { functionName       :: Text
+                              , functionStack      :: Stack
+                              , functionBody       :: BlockMonoid arch
+                              } deriving Show
+
+-- | Argument and local variables of the function determine the
+-- contents of the stack of a functional call.
+data Stack = Stack { stackParams    :: [VarDec]
+                   , stackLocalVars :: [VarDec]
+                   } deriving Show
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
