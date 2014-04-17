@@ -12,6 +12,8 @@ here supports defining different syntaxes.
 {-# LANGUAGE FlexibleContexts       #-}
 module Aim.Assembler.Internal.Syntax
        ( Syntax(..)
+       , program
+       , Pretty(..)
        --
        -- * Helper function for commenting
        -- ** Line comments
@@ -30,7 +32,7 @@ module Aim.Assembler.Internal.Syntax
        , commentHaskell
        , commentC
        ) where
-
+import Data.Maybe                  ( maybe               )
 import Data.Text                   ( Text, unpack, lines )
 import Prelude                     ( map, ($), (.)       )
 import Text.PrettyPrint
@@ -89,7 +91,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   declareFunction :: syntax
                   -> Text     -- Function name
                   -> Stack
-                  -> BlockMonoid (ArchOfSyntax syntax)
+                  -> Doc      -- Body.
                   -> Doc
 
   -- | Textual representation of a definition.
@@ -99,14 +101,47 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
 
 -- | How to comment a line of the program.
   commentLine :: syntax
-              -> Doc -- ^ program line
-              -> Doc -- ^ comment.
+              -> Doc  -- ^ program line
+              -> Text -- ^ comment.
               -> Doc
 
   -- | How write a block comment.
   blockComment :: syntax -- ^ The syntax
-               -> [Doc] -- ^ block comment
+               -> Doc    -- ^ block comment
+               -> Text
                -> Doc
+
+
+------------------------ Pretty printing a program -----------------
+
+-- | Pretty prints a program according to a given syntax.
+program :: Syntax syntax
+        => syntax
+        -> ProgramMonoid (ArchOfSyntax syntax)
+        -> Doc
+program syn = commenter dec (blockComment syn)
+  where blockDoc stack = commenter
+                         (statement syn stack)
+                         (commentLine syn)
+        dec (Verbatim txt) = doc txt
+        dec (DArray arr  ) = declareArray syn arr
+        dec (DFun f      ) = declareFunction syn (functionName  f)
+                                                 stack
+                                                 body
+          where stack   = functionStack f
+                body    = blockDoc stack (functionBody f)
+
+-- | Given a comment monoid converts it to a `Doc`. You need to give a
+-- way to pretty print the content type and a way to convert each
+-- commented entry to the appropriate doc.
+commenter :: (a   -> Doc)          -- ^ pretty printer for the content
+                                   -- type
+          -> (Doc -> Text -> Doc)  -- ^ commenting individual content.
+          -> CommentMonoid a
+          -> Doc
+commenter prettya com = vcat . map mapper
+  where mapper (Comment ma txt) = com adoc txt
+          where adoc = maybe empty prettya ma
 
 -------------------- Pretty printing ------------------------------
 
@@ -115,7 +150,6 @@ class Pretty a where
 
 instance Pretty Text where
   doc = text . unpack
-
 
 ------------------- Some commenting styles -------------------------
 
