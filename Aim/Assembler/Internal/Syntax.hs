@@ -31,10 +31,9 @@ module Aim.Assembler.Internal.Syntax
        , commentC
        ) where
 
-import Data.Monoid
-import Data.Text   ( Text, lines, unlines, intercalate )
-import Prelude     ( map, ($), (.)                     )
-
+import Data.Text                   ( Text, unpack, lines )
+import Prelude                     ( map, ($), (.)       )
+import Text.PrettyPrint
 
 import Aim.Machine( Arch )
 import Aim.Assembler.Internal.Language
@@ -55,20 +54,20 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   arg          :: syntax
                -> Stack
                -> Arg (ArchOfSyntax syntax)
-               -> Text
+               -> Doc
 
   -- | Textual representation of an instruction.
   instruction  :: syntax
                -> Text   -- ^ opcode.
-               -> [Text] -- ^ textual representation of the operand.
-               -> Text
+               -> [Doc] -- ^ textual representation of the operand.
+               -> Doc
 
   -- | Textual representation of a statement. If instruction is
   -- defined then there is a default definition for this member.
   statement    :: syntax
                -> Stack
                -> Statement (ArchOfSyntax syntax)
-               -> Text
+               -> Doc
   statement syn _  (S0 opc      ) = instruction syn opc []
   statement syn st (S1 opc a    ) = instruction syn opc [ arg syn st a ]
   statement syn st (S2 opc a b  ) = instruction syn opc
@@ -84,83 +83,95 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   -- | Textual representation of and array declaration
   declareArray :: syntax
                -> Array (ArchOfSyntax syntax)
-               -> Text
+               -> Doc
 
   -- Textual representation of a function definition
   declareFunction :: syntax
                   -> Text     -- Function name
                   -> Stack
                   -> BlockMonoid (ArchOfSyntax syntax)
-
+                  -> Doc
 
   -- | Textual representation of a definition.
   declaration :: syntax
              -> Declaration (ArchOfSyntax syntax)
-             -> Text
+             -> Doc
 
 -- | How to comment a line of the program.
   commentLine :: syntax
-              -> Text -- ^ program line
-              -> Text -- ^ comment.
-              -> Text
+              -> Doc -- ^ program line
+              -> Doc -- ^ comment.
+              -> Doc
 
   -- | How write a block comment.
   blockComment :: syntax -- ^ The syntax
-               -> [Text] -- ^ block comment
-               -> Text
+               -> [Doc] -- ^ block comment
+               -> Doc
+
+-------------------- Pretty printing ------------------------------
+
+class Pretty a where
+  doc :: a -> Doc
+
+instance Pretty Text where
+  doc = text . unpack
+
+
+------------------- Some commenting styles -------------------------
 
 -- | This function can be used to comment when the underlying language
 -- supports line comments that start with a prefix. For example if the
 -- language supports shellLike comments use @prefixWith "#"@.
-lineCommentPrefix :: Text  -- ^ Line comment starting prefix
+lineCommentPrefix :: Doc   -- ^ Line comment starting prefix
                   -> Text  -- ^ The actual comment
-                  -> Text
-lineCommentPrefix start txt = intercalate "\n"
+                  -> Doc
+lineCommentPrefix start txt = vcat
                             $ map singleLine
                             $ lines txt
-  where singleLine com = start <> " " <> com
+  where singleLine com = start <+> doc com
 
+
+-- | Generate a block comment.
+commentBlock :: Doc -- ^ Comment start
+             -> Doc -- ^ line start
+             -> Doc -- ^ Comment end
+             -> Text -- ^ Comment.
+             -> Doc
+commentBlock start line end txt =
+  start
+  $+$ lineCommentPrefix line txt
+  $+$ end
 
 -- | Line commenting Shell style
-lineCommentShell :: Text -> Text
+lineCommentShell :: Text -> Doc
 lineCommentShell = lineCommentPrefix "#"
 
 -- | Line commenting Lisp style
-lineCommentLisp :: Text -> Text
+lineCommentLisp :: Text -> Doc
 lineCommentLisp = lineCommentPrefix ";"
 
 -- | Line commenting Haskell style
-lineCommentHaskell :: Text -> Text
+lineCommentHaskell :: Text -> Doc
 lineCommentHaskell = lineCommentPrefix "--"
 
 -- | Line commenting C++     style
-lineCommentCPP :: Text -> Text
-
+lineCommentCPP :: Text -> Doc
 lineCommentCPP = lineCommentPrefix "//"
 
--- | Generate a block comment.
-commentBlock :: Text -- ^ Comment start
-             -> Text -- ^ Comment line start
-             -> Text -- ^ Comment end
-             -> Text -- ^ Comment.
-             -> Text
-commentBlock start line end txt = unlines [ start
-                                          , lineCommentPrefix line txt
-                                          , end
-                                          ]
+
 
 -- | Block commenting Shell style
-commentShell :: Text -> Text
+commentShell :: Text -> Doc
 commentShell = commentBlock "##"  "##" "##"
 
 -- | Block commenting Lisp style
-commentLisp :: Text -> Text
+commentLisp :: Text -> Doc
 commentLisp = commentBlock ";;"  ";;" ";;"
 
 -- | Block commenting Haskell style
-commentHaskell :: Text -> Text
+commentHaskell :: Text -> Doc
 commentHaskell = commentBlock "{-" "  " "-}"
 
 -- | Block commenting C       style
-commentC :: Text -> Text
+commentC :: Text -> Doc
 commentC = commentBlock "/*" "**" "*/"
