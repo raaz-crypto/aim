@@ -11,7 +11,10 @@ This module supports generation of C Code via aim.
 
 module Aim.Arch.C
        ( C
+       , CRegister
        ) where
+
+import Data.Text
 
 import Aim.Machine
 
@@ -33,3 +36,14 @@ instance WordSize C Size16
 instance WordSize C Size32
 -- | C supports 64-bit integrals.
 instance WordSize C Size64
+
+-- | A C register.
+data CRegister ty = CRegister Text
+
+instance MachineType ty => Operand (CRegister ty) where
+
+  type SupportedOn (CRegister ty) = C
+  type Type (CRegister ty) = ty
+
+instance MachineType ty => Register (CRegister ty) where
+         registerName (CRegister rName) = rName
