@@ -20,7 +20,7 @@ module Aim.Assembler.Internal.Language
        -- * Stuff with comments
        , Commented(..), (<#>), (<!>)
        -- * Some Monoids
-       , ProgramMonoid, BlockMonoid, CommentMonoid
+       , Declarations, Statements, CommentMonoid
 
        ) where
 
@@ -32,10 +32,10 @@ import Data.Word             ( Word8, Word16, Word32, Word64 )
 import Aim.Machine
 
 -- | A program for a given architecture.
-type ProgramMonoid arch  = CommentMonoid (Declaration arch)
+type Declarations arch  = CommentMonoid (Declaration arch)
 
 -- | A statement block for a given architecture
-type BlockMonoid   arch  = CommentMonoid (Statement   arch)
+type Statements   arch  = CommentMonoid (Statement   arch)
 
 -- | A declaration is either an array or a function definition.
 data Declaration arch = Verbatim Text -- ^ copy verbatim.
@@ -54,7 +54,7 @@ data Array arch = Array { arrayName      :: Text
 -- | A function.
 data Function arch = Function { functionName       :: Text
                               , functionStack      :: Stack
-                              , functionBody       :: BlockMonoid arch
+                              , functionBody       :: Statements arch
                               } deriving Show
 
 -- | Argument and local variables of the function determine the

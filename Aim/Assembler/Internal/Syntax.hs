@@ -117,7 +117,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
 -- | Pretty prints a program according to a given syntax.
 program :: Syntax syntax
         => syntax
-        -> ProgramMonoid (ArchOfSyntax syntax)
+        -> Declarations (ArchOfSyntax syntax)
         -> Doc
 program syn = commenter dec (blockComment syn)
   where blockDoc stack = commenter
