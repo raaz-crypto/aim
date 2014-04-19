@@ -6,19 +6,23 @@ The aim monad.
 -}
 
 {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeFamilies         #-}
 module Aim.Monad
        ( AimT, ProgramT, BlockT
        , Aim, Program, Block
        , AsmBlock, AsmProgram
        , doMonadic
        , runAimT, runAim
-
+       , assemble
        ) where
 
+import Control.Applicative              ( (<$>)    )
 import Control.Monad.Writer
 import Control.Monad.Identity
+import Text.PrettyPrint                 ( Doc      )
 
 import Aim.Assembler.Internal.Language
+import Aim.Assembler.Internal.Syntax
 import Aim.Machine
 
 -- | Type alias for an assembly language block for a machine.
@@ -57,3 +61,12 @@ runAim   = runIdentity . runAimT
 -- | Run the aim monad transformer to get the instructions.
 runAimT  :: Monad m => AimT w machine m a -> m w
 runAimT  = execWriterT
+
+assemble :: ( Syntax syntax
+            , Monad m, Functor m
+            , ArchOfSyntax syntax ~ ArchOf machine
+            )
+         => syntax
+         -> ProgramT machine m a
+         -> m Doc
+assemble syntax pg = program syntax <$> runAimT pg
