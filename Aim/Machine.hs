@@ -125,8 +125,12 @@ class ( Arch (SupportedOn operand)
   type MachineConstraint machine operand :: Constraint
 
   type MachineConstraint machine operand
-          = ( Supports machine (Type operand)
-            , SupportedOn operand ~ ArchOf machine
+          = ( Supports machine (Type operand)      --  machine should
+                                                   --  support the
+                                                   --  type
+            , SupportedOn operand ~ ArchOf machine -- the should share
+                                                   -- the underlying
+                                                   -- architecture
             )
 
 -- | Constraint that the given operand is a register.
