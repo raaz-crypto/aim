@@ -28,14 +28,14 @@ module Aim.Machine
        , WordSize, Size(..)
        , MachineType(..)
        , Supports
-       , Register
+       , Register(..)
        , Operand (..)
        ) where
 
 import GHC.Exts         ( Constraint                    )
-import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
-
+import Data.Text        ( Text                          )
+import Data.Word        ( Word8, Word16, Word32, Word64 )
 -- | Class that captures an architecture.
 class Arch arch
 
@@ -134,4 +134,6 @@ class ( Arch (SupportedOn operand)
             )
 
 -- | Constraint that the given operand is a register.
-class Operand operand => Register operand
+class Operand operand => Register operand where
+  -- | Name of the register
+  registerName :: operand -> Text
