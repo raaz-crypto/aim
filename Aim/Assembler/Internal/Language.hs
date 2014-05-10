@@ -9,6 +9,8 @@ users of @aim@ should avoid using it directly.
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE ConstraintKinds            #-}
+
 module Aim.Assembler.Internal.Language
        ( Declaration(..), Array(..), Function(..), Stack(..)
        , Statement(..), Arg(..), VarDec(..)
@@ -26,36 +28,37 @@ module Aim.Assembler.Internal.Language
 
 import Data.Int              ( Int8, Int16, Int32, Int64     )
 import Data.String
-import Data.Text             ( Text                          )
+import Data.Text             ( Text, unpack                  )
 import Data.Word             ( Word8, Word16, Word32, Word64 )
-
+import Foreign.Ptr           ( Ptr                           )
 import Aim.Machine
 
--- | A program for a given architecture.
-type Declarations arch  = CommentMonoid (Declaration arch)
+-- | A program for a given machine.
+type Declarations machine  = CommentMonoid (Declaration machine)
 
--- | A statement block for a given architecture
-type Statements   arch  = CommentMonoid (Statement   arch)
+-- | A statement block for a given machine.
+type Statements   machine = CommentMonoid (Statement   machine)
 
 -- | A declaration is either an array or a function definition.
-data Declaration arch = Verbatim Text -- ^ copy verbatim.
-                      | DArray (Array arch)
+data Declaration machine = Verbatim Text -- ^ copy verbatim.
+                         | DArray (Array machine)
                                       -- ^ An integral array
                                       -- declaration
-                      | DFun (Function arch)
+                         | DFun (Function machine)
                                       -- ^ A function definition
-                      deriving Show
+                         deriving Show
 
 -- | An array.
-data Array arch = Array { arrayName      :: Text
-                        , arrayValueSize :: Size
-                        , arrayContents  :: [Integer]
-                        } deriving Show
+data Array machine = Array { arrayName      :: Text
+                           , arrayValueSize :: Size
+                           , arrayContents  :: [Integer]
+                           } deriving Show
 -- | A function.
-data Function arch = Function { functionName       :: Text
-                              , functionStack      :: Stack
-                              , functionBody       :: Statements arch
-                              } deriving Show
+data Function machine =
+  Function { functionName       :: Text
+           , functionStack      :: Stack
+           , functionBody       :: Statements machine
+           } deriving Show
 
 -- | Argument and local variables of the function determine the
 -- contents of the stack of a functional call.
@@ -65,23 +68,49 @@ data Stack = Stack { stackParams    :: [VarDec]
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
-data Statement arch = S0 Text
-                    | S1 Text (Arg arch)
-                    | S2 Text (Arg arch) (Arg arch)
-                    | S3 Text (Arg arch) (Arg arch) (Arg arch)
-                    deriving Show
+data Statement machine = S0 Text
+                       | S1 Text (Arg machine)
+                       | S2 Text (Arg machine) (Arg machine)
+                       | S3 Text (Arg machine) (Arg machine) (Arg machine)
+                       deriving Show
 
 -- | An argument of an assembly statement.
-data Arg arch = Immediate Constant -- ^ An immediate value
-              | Param     Int      -- ^ A parameter
-              | Local     Int      -- ^ A local variable
-              | Reg       Text     -- ^ A register
-              | Indirect  Text
-                          Size
-                          Int      -- ^ An indirect address. The text
-                                   -- field is the name of the
-                                   -- register used for indirection
-              deriving Show
+data Arg machine where
+  -- | An immediate value
+  Immediate :: Constant -> Arg machine
+
+  -- | A parameter. The integer denote the offset in the parmeter
+  -- stack. A function having three arguments @foo@, @bar@ and @biz@
+  -- will have @foo@ as parameter 0, @bar@ as parameter 1 and @biz@ as
+  -- parameter 2.
+  Param     :: Int -> Arg machine
+
+  -- | A local variable (available on the stack). A convention similar
+  -- to parameter is used here.
+  Local     :: Int -> Arg machine
+
+  -- | A machine register.
+  Reg       :: (Register reg, MachineConstraint machine reg)
+            => reg -> Arg machine
+
+  -- | An indirect address. The base address is stored in a register
+  -- that can hold a pointer.
+  Indirect  :: ( Register reg
+               , MachineConstraint machine reg
+               , Type reg ~ Ptr a
+               , MachineType a
+               )
+               => reg
+               -> Int
+               -> Arg machine
+
+instance Show (Arg machine) where
+  show (Immediate c)  = show c
+  show (Param     i)  = "$(" ++ show i ++ ")"
+  show (Local     i)  = "@(" ++ show i ++ ")"
+  show (Reg       r)  = unpack (registerName r)
+  show (Indirect r i) = unpack (registerName r)
+                        ++ "[ " ++ show i ++ " ]"
 
 -- | A variable declaration.
 data VarDec = VarDec (Signed Size) Text deriving Show
