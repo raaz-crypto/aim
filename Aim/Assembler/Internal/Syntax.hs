@@ -90,7 +90,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
                -> Array machine
                -> Doc
 
-  -- Textual representation of a function definition
+  -- | Textual representation of a function definition
   declareFunction :: syntax
                   -> Text     -- Function name
                   -> Stack
@@ -103,7 +103,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
               -> Declaration (ArchOfSyntax syntax)
               -> Doc
 
--- | How to comment a line of the program.
+  -- | How to comment a line of the program.
   commentLine :: syntax
               -> Doc  -- ^ program line
               -> Text -- ^ comment.
