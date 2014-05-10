@@ -76,24 +76,24 @@ data Statement machine = S0 Text
 
 -- | An argument of an assembly statement.
 data Arg machine where
-  -- | An immediate value
+  -- An immediate value
   Immediate :: Constant -> Arg machine
 
-  -- | A parameter. The integer denote the offset in the parmeter
+  -- A parameter. The integer denote the offset in the parmeter
   -- stack. A function having three arguments @foo@, @bar@ and @biz@
   -- will have @foo@ as parameter 0, @bar@ as parameter 1 and @biz@ as
   -- parameter 2.
   Param     :: Int -> Arg machine
 
-  -- | A local variable (available on the stack). A convention similar
+  -- A local variable (available on the stack). A convention similar
   -- to parameter is used here.
   Local     :: Int -> Arg machine
 
-  -- | A machine register.
+  -- A machine register.
   Reg       :: (Register reg, MachineConstraint machine reg)
             => reg -> Arg machine
 
-  -- | An indirect address. The base address is stored in a register
+  -- An indirect address. The base address is stored in a register
   -- that can hold a pointer.
   Indirect  :: ( Register reg
                , MachineConstraint machine reg
