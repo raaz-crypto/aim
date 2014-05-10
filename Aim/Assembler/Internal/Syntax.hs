@@ -55,7 +55,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   -- | Textual reprensentation `Arg`.
   arg          :: (ArchOf machine ~ ArchOfSyntax syntax)
                => syntax
-               -> Stack
+               -> Scope machine
                -> Arg machine
                -> Doc
 
@@ -69,7 +69,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   -- defined then there is a default definition for this member.
   statement    :: (ArchOf machine ~ ArchOfSyntax syntax)
                => syntax
-               -> Stack
+               -> Scope machine
                -> Statement machine
                -> Doc
   statement syn _  (S0 opc      ) = instruction syn opc []
@@ -93,7 +93,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   -- | Textual representation of a function definition
   declareFunction :: syntax
                   -> Text     -- Function name
-                  -> Stack
+                  -> Scope machine
                   -> Doc      -- Body.
                   -> Doc
 
@@ -124,16 +124,16 @@ program :: (Syntax syntax, ArchOf machine ~ ArchOfSyntax syntax)
         -> Declarations machine
         -> Doc
 program syn = commenter dec (blockComment syn)
-  where blockDoc stack = commenter
-                         (statement syn stack)
+  where blockDoc scope = commenter
+                         (statement syn scope)
                          (commentLine syn)
         dec (Verbatim txt) = doc txt
         dec (DArray arr  ) = declareArray syn arr
         dec (DFun f      ) = declareFunction syn (functionName  f)
-                                                 stack
+                                                 scope
                                                  body
-          where stack   = functionStack f
-                body    = blockDoc stack (functionBody f)
+          where scope   = functionScope f
+                body    = blockDoc scope (functionBody f)
 
 -- | Given a comment monoid converts it to a `Doc`. You need to give a
 -- way to pretty print the content type and a way to convert each

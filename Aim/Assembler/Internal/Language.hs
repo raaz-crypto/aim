@@ -12,7 +12,7 @@ users of @aim@ should avoid using it directly.
 {-# LANGUAGE ConstraintKinds            #-}
 
 module Aim.Assembler.Internal.Language
-       ( Declaration(..), Array(..), Function(..), Stack(..)
+       ( Declaration(..), Array(..), Function(..), Scope(..)
        , Statement(..), Arg(..), VarDec(..)
        -- * Helpers to create immediate arguments
        , word8, word16, word32, word64, word128, word256, char8
@@ -25,11 +25,11 @@ module Aim.Assembler.Internal.Language
 
        ) where
 
-import Data.Int              ( Int8, Int16, Int32, Int64     )
 import Data.String
 import Data.Text             ( Text, unpack                  )
 import Data.Word             ( Word8, Word16, Word32, Word64 )
 import Foreign.Ptr           ( Ptr                           )
+
 import Aim.Machine
 
 -- | A program for a given machine.
@@ -55,15 +55,17 @@ data Array machine = Array { arrayName      :: Text
 -- | A function.
 data Function machine =
   Function { functionName       :: Text
-           , functionStack      :: Stack
+           , functionScope      :: Scope machine
            , functionBody       :: Statements machine
            } deriving Show
 
--- | Argument and local variables of the function determine the
--- contents of the stack of a functional call.
-data Stack = Stack { stackParams    :: [VarDec]
-                   , stackLocalVars :: [VarDec]
-                   } deriving Show
+-- | Argument, local variables and register allocated for use in the
+-- function. This, in particular, determines the contents of the stack
+-- of a functional call.
+data Scope machine = Scope { scopeParams        :: [VarDec]
+                           , scopeLocalVars     :: [VarDec]
+                           , scopeRegisterAlloc :: [RegAlloc machine]
+                           } deriving Show
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
@@ -112,7 +114,20 @@ instance Show (Arg machine) where
                         ++ "[ " ++ show i ++ " ]"
 
 -- | A variable declaration.
-data VarDec = VarDec (Signed Size) Text deriving Show
+data Var ty = Var Text deriving Show
+
+data VarDec where
+  VarDec :: MachineType ty => Var ty -> VarDec
+
+data RegAlloc machine where
+  RegAlloc :: (Register reg, MachineConstraint machine reg)
+           => reg -> RegAlloc machine
+
+instance Show VarDec where
+  show (VarDec v) = show v
+
+instance Show (RegAlloc machine) where
+  show (RegAlloc reg) = unpack $ registerName reg
 
 ------------------- Some helper functions --------------------
 
