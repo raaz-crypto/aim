@@ -28,13 +28,15 @@ module Aim.Machine
        , WordSize, Size(..)
        , MachineType(..)
        , Supports
-       , Register
+       , Register(..)
        , Operand (..)
        ) where
 
 import GHC.Exts         ( Constraint                    )
-import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
+import Data.Text        ( Text                          )
+import Data.Word        ( Word8, Word16, Word32, Word64 )
+import Foreign.Ptr      ( Ptr                           )
 
 -- | Class that captures an architecture.
 class Arch arch
@@ -95,6 +97,8 @@ instance MachineType  Int32 where type TypeSize  Int32 = Size32
 instance MachineType Word64 where type TypeSize Word64 = Size64
 instance MachineType  Int64 where type TypeSize  Int64 = Size64
 
+instance MachineType a => MachineType (Ptr a) where
+  type TypeSize (Ptr a) = SizePtr
 
 -- | The instance @`WordSize` mach sz@ means that the machine @mach@
 -- can process integral values of size @sz@.
@@ -125,9 +129,15 @@ class ( Arch (SupportedOn operand)
   type MachineConstraint machine operand :: Constraint
 
   type MachineConstraint machine operand
-          = ( Supports machine (Type operand)
-            , SupportedOn operand ~ ArchOf machine
+          = ( Supports machine (Type operand)      --  machine should
+                                                   --  support the
+                                                   --  type
+            , SupportedOn operand ~ ArchOf machine -- the should share
+                                                   -- the underlying
+                                                   -- architecture
             )
 
 -- | Constraint that the given operand is a register.
-class Operand operand => Register operand
+class Operand operand => Register operand where
+  -- | Name of the register
+  registerName :: operand -> Text

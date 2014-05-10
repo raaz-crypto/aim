@@ -26,10 +26,10 @@ import Aim.Assembler.Internal.Syntax
 import Aim.Machine
 
 -- | Type alias for an assembly language block for a machine.
-type AsmBlock   machine = BlockMonoid     (ArchOf machine)
+type AsmBlock   machine = Statements  machine
 
 -- | Type alias for an assembly language program for a machine.
-type AsmProgram machine = ProgramMonoid   (ArchOf machine)
+type AsmProgram machine = Declarations machine
 
 -- | The aim monad transformer.
 type AimT w machine m    = WriterT w m

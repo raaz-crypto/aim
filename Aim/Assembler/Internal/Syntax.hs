@@ -37,7 +37,7 @@ import Data.Text                   ( Text, unpack, lines )
 import Prelude                     ( map, ($), (.)       )
 import Text.PrettyPrint
 
-import Aim.Machine( Arch )
+import Aim.Machine                 ( Arch, Machine(..)   )
 import Aim.Assembler.Internal.Language
 
 
@@ -53,9 +53,10 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   type ArchOfSyntax syntax
 
   -- | Textual reprensentation `Arg`.
-  arg          :: syntax
+  arg          :: (ArchOf machine ~ ArchOfSyntax syntax)
+               => syntax
                -> Stack
-               -> Arg (ArchOfSyntax syntax)
+               -> Arg machine
                -> Doc
 
   -- | Textual representation of an instruction.
@@ -66,9 +67,10 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
 
   -- | Textual representation of a statement. If instruction is
   -- defined then there is a default definition for this member.
-  statement    :: syntax
+  statement    :: (ArchOf machine ~ ArchOfSyntax syntax)
+               => syntax
                -> Stack
-               -> Statement (ArchOfSyntax syntax)
+               -> Statement machine
                -> Doc
   statement syn _  (S0 opc      ) = instruction syn opc []
   statement syn st (S1 opc a    ) = instruction syn opc [ arg syn st a ]
@@ -83,11 +85,12 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
                                     ]
 
   -- | Textual representation of and array declaration
-  declareArray :: syntax
-               -> Array (ArchOfSyntax syntax)
+  declareArray :: (ArchOf machine ~ ArchOfSyntax syntax)
+               => syntax
+               -> Array machine
                -> Doc
 
-  -- Textual representation of a function definition
+  -- | Textual representation of a function definition
   declareFunction :: syntax
                   -> Text     -- Function name
                   -> Stack
@@ -95,11 +98,12 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
                   -> Doc
 
   -- | Textual representation of a definition.
-  declaration :: syntax
-             -> Declaration (ArchOfSyntax syntax)
-             -> Doc
+  declaration :: (ArchOf machine ~ ArchOfSyntax syntax)
+              => syntax
+              -> Declaration (ArchOfSyntax syntax)
+              -> Doc
 
--- | How to comment a line of the program.
+  -- | How to comment a line of the program.
   commentLine :: syntax
               -> Doc  -- ^ program line
               -> Text -- ^ comment.
@@ -115,9 +119,9 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
 ------------------------ Pretty printing a program -----------------
 
 -- | Pretty prints a program according to a given syntax.
-program :: Syntax syntax
+program :: (Syntax syntax, ArchOf machine ~ ArchOfSyntax syntax)
         => syntax
-        -> ProgramMonoid (ArchOfSyntax syntax)
+        -> Declarations machine
         -> Doc
 program syn = commenter dec (blockComment syn)
   where blockDoc stack = commenter
