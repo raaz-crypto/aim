@@ -17,6 +17,8 @@ module Aim.Monad
        , runAimT, runAim
        -- ** Function definition
        , function, param, local, register, body
+       -- ** Arrays
+       , array
        -- * Assembling
        , assembleM, assemble
        ) where
@@ -137,3 +139,19 @@ register r = do
   modify $ allocReg
   return $ Reg r
   where allocReg s = s <> mempty { scopeRegisterAlloc = [ RegAlloc r ]}
+
+------------------------ Array declaration --------------------------
+
+array :: ( Supports machine ty
+         , Integral ty
+         , Monad m
+         )
+      => Text
+      -> [ty]
+      -> ProgramT machine m ()
+array aName tys = tell $ [ a <#> "Array " <> aName ]
+  where a = DArray $ mkArray tys
+        mkArray :: Integral t => [t] -> Array machine t
+        mkArray t = Array { arrayName     = aName
+                          , arrayContents = map toInteger $ t
+                          }
