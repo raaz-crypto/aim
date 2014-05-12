@@ -80,22 +80,18 @@ data Size = Size8
 
 -- | Declaring a type to be an instance of `MachineType` means that it
 -- can potentially be stored and processed in some machines registers.
--- The Associated type `TypeSize` captures the Size required to
+-- The associated type `TypeSize` captures the Size required to
 -- capture the given type @ty@
 class MachineType ty where
   type TypeSize ty :: Size
 
 instance MachineType  Word8 where type TypeSize Word8  = Size8
-instance MachineType   Int8 where type TypeSize  Int8  = Size8
 
 instance MachineType Word16 where type TypeSize Word16 = Size16
-instance MachineType  Int16 where type TypeSize  Int16 = Size16
 
 instance MachineType Word32 where type TypeSize Word32 = Size32
-instance MachineType  Int32 where type TypeSize  Int32 = Size32
 
 instance MachineType Word64 where type TypeSize Word64 = Size64
-instance MachineType  Int64 where type TypeSize  Int64 = Size64
 
 instance MachineType a => MachineType (Ptr a) where
   type TypeSize (Ptr a) = SizePtr
