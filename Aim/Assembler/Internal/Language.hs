@@ -41,19 +41,28 @@ type Declarations machine  = CommentMonoid (Declaration machine)
 type Statements   machine = CommentMonoid (Statement   machine)
 
 -- | A declaration is either an array or a function definition.
-data Declaration machine = Verbatim Text -- ^ copy verbatim.
-                         | DArray (Array machine)
-                                      -- ^ An integral array
-                                      -- declaration
-                         | DFun (Function machine)
-                                      -- ^ A function definition
-                         deriving Show
+data Declaration machine where
+
+  -- Emit verbatim text
+  Verbatim :: Text -> Declaration machine
+
+  -- Array declaration
+  DArray   :: Supports machine ty
+           => Array machine ty
+           -> Declaration machine
+  -- Function definition
+  DFun     :: Function machine -> Declaration machine
+
+
+instance Show (Declaration machine) where
+  show (Verbatim t) = "Verbatim " ++ show t
+  show (DArray   a) = "DArray ("  ++ show a ++ ")"
+  show (DFun     f) = "DFun ("    ++ show f ++ ")"
 
 -- | An array.
-data Array machine = Array { arrayName      :: Text
-                           , arrayValueSize :: Size
-                           , arrayContents  :: [Integer]
-                           } deriving Show
+data Array machine ty = Array { arrayName      :: Text
+                              , arrayContents  :: [Integer]
+                              } deriving Show
 -- | A function.
 data Function machine =
   Function { functionName       :: Text

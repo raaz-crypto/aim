@@ -10,6 +10,8 @@ here supports defining different syntaxes.
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE ConstraintKinds        #-}
+
 module Aim.Assembler.Internal.Syntax
        ( Syntax(..)
        , program
@@ -37,7 +39,7 @@ import Data.Text                   ( Text, unpack, lines )
 import Prelude                     ( map, ($), (.)       )
 import Text.PrettyPrint
 
-import Aim.Machine                 ( Arch, Machine(..)   )
+import Aim.Machine
 import Aim.Assembler.Internal.Language
 
 
@@ -85,9 +87,11 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
                                     ]
 
   -- | Textual representation of and array declaration
-  declareArray :: (ArchOf machine ~ ArchOfSyntax syntax)
+  declareArray :: ( Supports machine ty
+                  , ArchOf machine ~ ArchOfSyntax syntax
+                  )
                => syntax
-               -> Array machine
+               -> Array machine ty
                -> Doc
 
   -- | Textual representation of a function definition
