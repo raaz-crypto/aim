@@ -10,10 +10,11 @@ users of @aim@ should avoid using it directly.
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE ConstraintKinds            #-}
+{-# LANGUAGE FlexibleContexts           #-}
 
 module Aim.Assembler.Internal.Language
        ( Declaration(..), Array(..), Function(..), Scope(..)
-       , Statement(..), Arg(..), VarDec(..)
+       , Statement(..), Arg(..), VarDec(..), Var(..)
        -- * Helpers to create immediate arguments
        , word8, word16, word32, word64, word128, word256, char8
        -- * Constants
@@ -63,8 +64,8 @@ data Function machine =
 -- | Argument, local variables and register allocated for use in the
 -- function. This, in particular, determines the contents of the stack
 -- of a functional call.
-data Scope machine = Scope { scopeParams        :: [VarDec]
-                           , scopeLocalVars     :: [VarDec]
+data Scope machine = Scope { scopeParams        :: [VarDec machine]
+                           , scopeLocalVars     :: [VarDec machine]
                            , scopeRegisterAlloc :: [RegAlloc machine]
                            } deriving Show
 
@@ -125,14 +126,14 @@ data Var ty = Var Text deriving Show
 instance IsString (Var ty) where
   fromString = Var . fromString
 
-data VarDec where
-  VarDec :: MachineType ty => Var ty -> VarDec
+data VarDec machine where
+  VarDec :: Supports machine ty => Var ty -> VarDec machine
 
 data RegAlloc machine where
   RegAlloc :: (Register reg, MachineConstraint machine reg)
            => reg -> RegAlloc machine
 
-instance Show VarDec where
+instance Show (VarDec machine) where
   show (VarDec v) = show v
 
 instance Show (RegAlloc machine) where
