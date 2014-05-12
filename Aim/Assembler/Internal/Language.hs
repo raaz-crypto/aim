@@ -122,6 +122,9 @@ instance Show (Arg machine) where
 -- | A variable declaration.
 data Var ty = Var Text deriving Show
 
+instance IsString (Var ty) where
+  fromString = Var . fromString
+
 data VarDec where
   VarDec :: MachineType ty => Var ty -> VarDec
 
