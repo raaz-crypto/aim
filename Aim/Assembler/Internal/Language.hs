@@ -14,7 +14,7 @@ users of @aim@ should avoid using it directly.
 
 module Aim.Assembler.Internal.Language
        ( Declaration(..), Array(..), Function(..), Scope(..)
-       , Statement(..), Arg(..), VarDec(..), Var(..)
+       , Statement(..), Arg(..), VarDec(..), Var(..), RegAlloc(..)
        -- * Helpers to create immediate arguments
        , word8, word16, word32, word64, word128, word256, char8
        -- * Constants
