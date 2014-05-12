@@ -25,6 +25,7 @@ module Aim.Assembler.Internal.Language
 
        ) where
 
+import Data.Monoid
 import Data.String
 import Data.Text             ( Text, unpack                  )
 import Data.Word             ( Word8, Word16, Word32, Word64 )
@@ -66,6 +67,11 @@ data Scope machine = Scope { scopeParams        :: [VarDec]
                            , scopeLocalVars     :: [VarDec]
                            , scopeRegisterAlloc :: [RegAlloc machine]
                            } deriving Show
+
+instance Monoid (Scope machine) where
+  mempty  = Scope [] [] []
+  mappend (Scope pa la ra) (Scope pb lb rb) =
+    Scope (pa ++ pb) (la ++ lb) (ra ++ rb)
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
