@@ -207,3 +207,6 @@ instance IsString (Commented a) where
 -- | Comments first and then the object.
 (<!>) :: Text -> a -> Commented a
 (<!>) = flip (<#>)
+
+infix 0 <#>
+infix 0 <!>
