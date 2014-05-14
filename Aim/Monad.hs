@@ -94,11 +94,10 @@ function :: Monad m
          -> ProgramT machine m ()
 function fname fMonad = do
   (s, b) <- lift $ runWriterT $ execStateT fMonad mempty
-  let defun = DFun
-              $ Function { functionName  = fname
-                         , functionScope = s
-                         , functionBody  = b
-                         }
+  let defun = DFun Function { functionName  = fname
+                            , functionScope = s
+                            , functionBody  = b
+                            }
       in tell [ fromString $ unpack $ "function " <> fname
               , defun <#> ("end of function " <> fname)
               ]
@@ -113,7 +112,7 @@ param :: ( Supports machine ty, Monad m, Functor m)
       -> FunctionT machine m (Arg machine ty)
 param v = do
   p <- nParams <$> get
-  modify $ defParam
+  modify defParam
   return $ Param p
   where defParam s = s <> mempty { scopeParams = [VarDec v] }
         nParams      = length . scopeParams
@@ -124,7 +123,7 @@ local :: ( Supports machine ty, Monad m, Functor m)
       -> FunctionT machine m (Arg machine ty)
 local v = do
   l <- nLocal <$> get
-  modify $ defLocal
+  modify defLocal
   return $ Param l
   where defLocal s = s <> mempty { scopeLocalVars = [VarDec v] }
         nLocal       = length . scopeLocalVars
@@ -137,7 +136,7 @@ register :: ( Register reg
             => reg
             -> FunctionT machine m (Arg machine ty)
 register r = do
-  modify $ allocReg
+  modify allocReg
   return $ Reg r
   where allocReg s = s <> mempty { scopeRegisterAlloc = [ RegAlloc r ]}
 
@@ -150,9 +149,9 @@ array :: ( Supports machine ty
       => Text
       -> [ty]
       -> ProgramT machine m ()
-array aName tys = tell $ [ a <#> "Array " <> aName ]
+array aName tys = tell [ a <#> "Array " <> aName ]
   where a = DArray $ mkArray tys
         mkArray :: Integral t => [t] -> Array machine t
-        mkArray t = Array { arrayName     = aName
-                          , arrayContents = map toInteger $ t
-                          }
+        mkArray ts = Array { arrayName     = aName
+                           , arrayContents = map toInteger ts
+                           }

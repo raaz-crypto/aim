@@ -176,19 +176,19 @@ instance Show (RegAlloc machine) where
 ------------------- Some helper functions --------------------
 
 -- | An 8-bit unsigned integer.
-word8  :: Word8  -> (Arg arch Word8)
+word8  :: Word8  -> Arg arch Word8
 word8  = Immediate . Constant
 
 -- | A 16-bit unsigned integer.
-word16 :: Word16 -> (Arg arch Word16)
+word16 :: Word16 -> Arg arch Word16
 word16 = Immediate . Constant
 
 -- | A 32-bit unsigned integer.
-word32 :: Word32 -> (Arg arch Word32)
+word32 :: Word32 -> Arg arch Word32
 word32 = Immediate . Constant
 
 -- | A 64-bit unsiged integer.
-word64 :: Word64 -> (Arg arch Word64)
+word64 :: Word64 -> Arg arch Word64
 word64 = Immediate . Constant
 
 --------------------- Constants ----------------------------------------
