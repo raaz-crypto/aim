@@ -33,7 +33,6 @@ module Aim.Machine
        ) where
 
 import GHC.Exts         ( Constraint                    )
-import Data.Int         ( Int8,  Int16,  Int32,  Int64  )
 import Data.Text        ( Text                          )
 import Data.Word        ( Word8, Word16, Word32, Word64 )
 import Foreign.Ptr      ( Ptr                           )
