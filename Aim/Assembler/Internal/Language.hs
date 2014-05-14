@@ -16,7 +16,7 @@ module Aim.Assembler.Internal.Language
        ( Declaration(..), Array(..), Function(..), Scope(..)
        , Statement(..), Arg(..), VarDec(..), Var(..), RegAlloc(..)
        -- * Helpers to create immediate arguments
-       , word8, word16, word32, word64, word128, word256, char8
+       , word8, word16, word32, word64
        -- * Constants
        , Constant(..)
        -- * Stuff with comments
@@ -53,7 +53,6 @@ data Declaration machine where
   -- Function definition
   DFun     :: Function machine -> Declaration machine
 
-
 instance Show (Declaration machine) where
   show (Verbatim t) = "Verbatim " ++ show t
   show (DArray   a) = "DArray ("  ++ show a ++ ")"
@@ -85,49 +84,75 @@ instance Monoid (Scope machine) where
 
 -- | An statement can take 0,1,2 or 3 arguments. The text field is the
 -- neumonic of the instruction.
-data Statement machine = S0 Text
-                       | S1 Text (Arg machine)
-                       | S2 Text (Arg machine) (Arg machine)
-                       | S3 Text (Arg machine) (Arg machine) (Arg machine)
-                       deriving Show
+data Statement machine where
+  -- Instruction with no operand.
+  S0 :: Text -> Statement machine
+
+  -- Instruction with one operand.
+  S1 :: Supports machine ty
+     => Text
+     -> Arg machine ty
+     -> Statement machine
+
+  -- Two operand statement.
+  S2 :: ( Supports machine ty1, Supports machine ty2 )
+     => Text
+     -> Arg machine ty1
+     -> Arg machine ty2
+     -> Statement machine
+  -- Three operand statements.
+  S3 :: ( Supports machine ty1
+        , Supports machine ty2
+        , Supports machine ty3
+        )
+     => Text
+     -> Arg machine ty1
+     -> Arg machine ty2
+     -> Arg machine ty3
+     -> Statement machine
+
+instance Show (Statement machine) where
+  show (S0 op      ) = unwords ["S0", show op]
+  show (S1 op a    ) = unwords ["S1", show op, show a]
+  show (S2 op a b  ) = unwords ["S2", show op, show a, show b]
+  show (S3 op a b c) = unwords ["S2", show op, show a, show b, show c]
 
 -- | An argument of an assembly statement.
-data Arg machine where
+data Arg machine ty where
   -- An immediate value
-  Immediate :: Constant -> Arg machine
+  Immediate :: Integral ty => Constant ty -> Arg machine ty
 
   -- A parameter. The integer denote the offset in the parmeter
   -- stack. A function having three arguments @foo@, @bar@ and @biz@
   -- will have @foo@ as parameter 0, @bar@ as parameter 1 and @biz@ as
   -- parameter 2.
-  Param     :: Int -> Arg machine
+  Param     :: Int -> Arg machine ty
 
   -- A local variable (available on the stack). A convention similar
   -- to parameter is used here.
-  Local     :: Int -> Arg machine
+  Local     :: Int -> Arg machine ty
 
   -- A machine register.
-  Reg       :: (Register reg, MachineConstraint machine reg)
-            => reg -> Arg machine
+  Reg       :: (Register reg, Type reg ~ ty)
+            => reg -> Arg machine ty
 
   -- An indirect address. The base address is stored in a register
   -- that can hold a pointer.
   Indirect  :: ( Register reg
                , MachineConstraint machine reg
-               , Type reg ~ Ptr a
-               , MachineType a
+               , Type reg ~ Ptr ty
                )
                => reg
                -> Int
-               -> Arg machine
+               -> Arg machine ty
 
-instance Show (Arg machine) where
-  show (Immediate c)  = show c
-  show (Param     i)  = "$(" ++ show i ++ ")"
-  show (Local     i)  = "@(" ++ show i ++ ")"
-  show (Reg       r)  = unpack (registerName r)
-  show (Indirect r i) = unpack (registerName r)
-                        ++ "[ " ++ show i ++ " ]"
+instance Show (Arg machine ty) where
+  show (Immediate (Constant ty)) = show $ toInteger ty
+  show (Param i)                 = "$("++ show i  ++ ")"
+  show (Local i)                 = "$("++ show i  ++ ")"
+  show (Reg       r)             = unpack (registerName r)
+  show (Indirect r i)            = unpack (registerName r)
+                                 ++ "[ " ++ show i ++ " ]"
 
 -- | A variable declaration.
 data Var ty = Var Text deriving Show
@@ -151,40 +176,27 @@ instance Show (RegAlloc machine) where
 ------------------- Some helper functions --------------------
 
 -- | An 8-bit unsigned integer.
-word8  :: Word8  -> (Arg arch)
-word8  = Immediate . I Size8 . toInteger
+word8  :: Word8  -> (Arg arch Word8)
+word8  = Immediate . Constant
 
 -- | A 16-bit unsigned integer.
-word16 :: Word16 -> (Arg arch)
-word16 = Immediate . I Size16 . toInteger
+word16 :: Word16 -> (Arg arch Word16)
+word16 = Immediate . Constant
 
 -- | A 32-bit unsigned integer.
-word32 :: Word32 -> (Arg arch)
-word32 = Immediate . I Size32 . toInteger
+word32 :: Word32 -> (Arg arch Word32)
+word32 = Immediate . Constant
 
 -- | A 64-bit unsiged integer.
-word64 :: Word64 -> (Arg arch)
-word64 = Immediate . I Size64 . toInteger
-
--- | A 128-bit unsigned integer.
-word128 :: Integer -> (Arg arch)
-word128 = Immediate . I Size128
-
--- | A 256-bit unsiged integer.
-word256 :: Integer -> (Arg arch)
-word256 = Immediate . I Size256
-
--- | Encode a character into its ascii equivalent.
-char8 :: Char -> (Arg arch)
-char8 = word8 . toEnum . fromEnum
+word64 :: Word64 -> (Arg arch Word64)
+word64 = Immediate . Constant
 
 --------------------- Constants ----------------------------------------
 
 
 -- | A constant.
-data Constant = I Size Integer  -- ^ A signed integer
-              | F Double        -- ^ A floting point constant.
-              deriving Show
+data Constant ty = Constant ty
+
 
 ------------------ Commenting ------------------------------------------
 

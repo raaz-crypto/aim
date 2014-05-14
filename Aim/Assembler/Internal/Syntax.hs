@@ -58,7 +58,7 @@ class Arch (ArchOfSyntax syntax) => Syntax syntax where
   arg          :: (ArchOf machine ~ ArchOfSyntax syntax)
                => syntax
                -> Scope machine
-               -> Arg machine
+               -> Arg machine ty
                -> Doc
 
   -- | Textual representation of an instruction.

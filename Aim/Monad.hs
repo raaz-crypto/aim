@@ -110,7 +110,7 @@ body = lift
 -- | Parameter declaration in function.
 param :: ( Supports machine ty, Monad m, Functor m)
       => Var ty
-      -> FunctionT machine m (Arg machine)
+      -> FunctionT machine m (Arg machine ty)
 param v = do
   p <- nParams <$> get
   modify $ defParam
@@ -121,7 +121,7 @@ param v = do
 -- | Parameter declaration in function.
 local :: ( Supports machine ty, Monad m, Functor m)
       => Var ty
-      -> FunctionT machine m (Arg machine)
+      -> FunctionT machine m (Arg machine ty)
 local v = do
   l <- nLocal <$> get
   modify $ defLocal
@@ -131,10 +131,11 @@ local v = do
 
 register :: ( Register reg
             , MachineConstraint machine reg
+            , Type reg ~ ty
             , Monad m
             )
             => reg
-            -> FunctionT machine m (Arg machine)
+            -> FunctionT machine m (Arg machine ty)
 register r = do
   modify $ allocReg
   return $ Reg r
