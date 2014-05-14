@@ -36,6 +36,8 @@ instance WordSize C Size16
 instance WordSize C Size32
 -- | C supports 64-bit integrals.
 instance WordSize C Size64
+-- | C supports pointer types.
+instance WordSize C SizePtr
 
 -- | A C register.
 data CRegister ty = CRegister Text
